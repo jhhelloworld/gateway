@@ -1,0 +1,149 @@
+#服务器配置
+server:
+  port: 8888
+  servlet:
+    context-path: "/gateway"
+
+
+spring:
+  redis:
+    port: 6379
+    host: r-2zef672b6e226be4.redis.rds.aliyuncs.com
+    password: 3f1AYUjsaFXvGdgT
+
+
+
+  application:
+    name: "cloudlearn-ips-gateway-real"
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.211.55.6:8848
+    gateway:
+      discovery:
+        locator:
+          lower-case-service-id: true
+          enabled: true
+          filters:
+          - StripPrefix=1
+
+      routes:
+
+      # 接入注册中心 指定路由  eureka  也可默认  localhost:8084/cloudlearn-ips-service-homepage
+      # nacos 指定路由，转发会自动带项目名 localhost:8888/service-provider/test/get
+      # 映射到 http://10.26.224.38:8070/service-provider/test/get  如果服务提供者没有context——path 报404
+      - id: service-provider
+        uri: lb://service-provider
+        predicates:
+        - Path=/service-provider/**
+        filters:
+        - AddRequestHeader=ics-token, 446a654cf768818ef76645fd8a09eacd
+        - Auth
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 1
+            redis-rate-limiter.burstCapacity: 10
+            key-resolver: "#{@apiKeyResolver}"
+
+      - id: after_route
+        uri: https://example.org/
+        predicates:
+        - After=2020-01-20T17:42:47.789-07:00[America/Denver]
+      # header 灰度学员 可以根据header区分
+      - id: header_route
+        uri: https://example.org/
+        predicates:
+        - Header=huidu, \d+
+        - Path=/points/*
+      # 根据路径路由
+      - id: host_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/{segment},/bar/{segment}
+      # 根据路径路由 通配符
+      - id: host_route
+        uri: https://www.baidu.com
+        predicates:
+        - Path=/foo/*
+      # 根据IP路由 /24是子网掩码
+      - id: remoteaddr_route
+        uri: https://example.org
+        predicates:
+        - RemoteAddr=192.168.1.1/24
+      # 根据权重路由
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Path=/weight/*
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Path=/weight/*
+        - Weight=group1, 2
+
+
+
+
+
+
+
+application:
+  db:
+    dbroute:
+      # tx - transactional非Propagation.REQUIRED方法用从库; name - 方法名称前缀带select, query, get用从库
+      dbrouteType: "tx"
+    master:
+      driverClassName: "com.mysql.jdbc.Driver"
+      url: "jdbc:mysql://rm-2zekq87i0gvxaxvph.mysql.rds.aliyuncs.com:3306/passport?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8"
+      username: "aliuat_rwuser"
+      password: "AliUAT_rwpwd6"
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      validation-query: "SELECT 1 FROM DUAL"
+      time-between-eviction-runs-millis: 300000
+      min-evictable-idle-time-millis: 300000
+      initial-size: 5
+      max-active: 500
+      max-wait: 60000
+      min-idle: 5
+    slave:
+      driverClassName: "com.mysql.jdbc.Driver"
+      url: "jdbc:mysql://rr-2zed666u4hsc1obtl.mysql.rds.aliyuncs.com:3306/passport?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8"
+      username: "aliuat_rouser"
+      password: "AliUAT_ropwd2"
+      test-while-idle: true
+      validation-query: "SELECT 1 FROM DUAL"
+      time-between-eviction-runs-millis: 300000
+      min-evictable-idle-time-millis: 300000
+      initial-size: 5
+      max-active: 500
+      max-wait: 60000
+      min-idle: 5
+
+logging:
+  level:
+    root: "debug"
+    com:
+      xes:
+        cloudlearn:
+          ips:
+            passport:
+              mapper: "DEBUG"
+          framework:
+            db: "DEBUG"
+
+mybatis:
+  config-location: "classpath:mybatis/mybatis-config.xml"
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  pool:
+    max-active: 8
+    max-wait: 1
+    max-idle: 8
+    min-idle: 0
+  timeout: 0
+
