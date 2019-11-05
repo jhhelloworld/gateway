@@ -10,6 +10,21 @@ spring:
     port: 6379
     host: r-2zef672b6e226be4.redis.rds.aliyuncs.com
     password: 3f1AYUjsaFXvGdgT
+  datasource:
+    url: "jdbc:mysql://rm-2zekq87i0gvxaxvph.mysql.rds.aliyuncs.com:3306/gateway_inner?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+    username: "aliuat_rwuser"
+    password: "AliUAT_rwpwd6"
+    driver-class-name: com.mysql.jdbc.Driver
+    test-while-idle: true
+    test-on-borrow: false
+    test-on-return: false
+    validation-query: "SELECT 1 FROM DUAL"
+    time-between-eviction-runs-millis: 300000
+    min-evictable-idle-time-millis: 300000
+    initial-size: 5
+    max-active: 500
+    max-wait: 60000
+    min-idle: 5
 
 
 
@@ -88,39 +103,8 @@ spring:
 
 
 
-application:
-  db:
-    dbroute:
-      # tx - transactional非Propagation.REQUIRED方法用从库; name - 方法名称前缀带select, query, get用从库
-      dbrouteType: "tx"
-    master:
-      driverClassName: "com.mysql.jdbc.Driver"
-      url: "jdbc:mysql://rm-2zekq87i0gvxaxvph.mysql.rds.aliyuncs.com:3306/passport?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8"
-      username: "aliuat_rwuser"
-      password: "AliUAT_rwpwd6"
-      test-while-idle: true
-      test-on-borrow: false
-      test-on-return: false
-      validation-query: "SELECT 1 FROM DUAL"
-      time-between-eviction-runs-millis: 300000
-      min-evictable-idle-time-millis: 300000
-      initial-size: 5
-      max-active: 500
-      max-wait: 60000
-      min-idle: 5
-    slave:
-      driverClassName: "com.mysql.jdbc.Driver"
-      url: "jdbc:mysql://rr-2zed666u4hsc1obtl.mysql.rds.aliyuncs.com:3306/passport?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8"
-      username: "aliuat_rouser"
-      password: "AliUAT_ropwd2"
-      test-while-idle: true
-      validation-query: "SELECT 1 FROM DUAL"
-      time-between-eviction-runs-millis: 300000
-      min-evictable-idle-time-millis: 300000
-      initial-size: 5
-      max-active: 500
-      max-wait: 60000
-      min-idle: 5
+
+
 
 logging:
   level:
@@ -134,8 +118,7 @@ logging:
           framework:
             db: "DEBUG"
 
-mybatis:
-  config-location: "classpath:mybatis/mybatis-config.xml"
+
 
 redis:
   host: 127.0.0.1
