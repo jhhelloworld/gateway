@@ -1,4 +1,4 @@
-package com.sunfield.gateway;
+package com.xes.cloudlearn.ips;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,4 +1,4 @@
-package com.sunfield.gateway.config;
+package com.xes.cloudlearn.ips.gateway.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;

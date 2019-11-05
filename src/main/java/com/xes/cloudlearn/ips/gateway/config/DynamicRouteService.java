@@ -1,4 +1,4 @@
-package com.sunfield.gateway.config;
+package com.xes.cloudlearn.ips.gateway.config;
 
 
 import com.alibaba.fastjson.JSON;
@@ -18,8 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.net.URI;
 import java.util.*;
-
-import static com.sunfield.gateway.config.RedisRouteDefinitionRepository.GATEWAY_ROUTES;
 
 /**
  * @author wuweifeng wrote on 2018/10/25.
@@ -43,10 +41,10 @@ public class DynamicRouteService implements ApplicationEventPublisherAware {
      * @return
      */
     public String allReplace(String routeDefinition) {
-        redisTemplate.opsForHash().put(GATEWAY_ROUTES, "key", routeDefinition);
+        redisTemplate.opsForHash().put(RedisRouteDefinitionRepository.GATEWAY_ROUTES, "key", routeDefinition);
         notifyChanged();
         List<RouteDefinition> routeDefinitions = new ArrayList<>();
-        redisTemplate.opsForHash().values(GATEWAY_ROUTES).stream()
+        redisTemplate.opsForHash().values(RedisRouteDefinitionRepository.GATEWAY_ROUTES).stream()
                 .forEach(rd -> routeDefinitions.add(JSON.parseObject(rd.toString(), RouteDefinition.class)));
         System.out.println(JSON.toJSONString(routeDefinitions));
         return "success";
@@ -143,7 +141,7 @@ public class DynamicRouteService implements ApplicationEventPublisherAware {
         definition.setPredicates(Arrays.asList(predicate));
 
         System.out.println("definition:" + JSON.toJSONString(definition));
-        redisTemplate.opsForHash().put(GATEWAY_ROUTES, "key", JSON.toJSONString(definition));
+        redisTemplate.opsForHash().put(RedisRouteDefinitionRepository.GATEWAY_ROUTES, "key", JSON.toJSONString(definition));
     }
 
     public String buildRouteDefinition(String id,String url,String path) {//path需要带/

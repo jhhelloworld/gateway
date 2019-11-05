@@ -1,4 +1,4 @@
-package com.sunfield.gateway;
+package com.xes.cloudlearn.ips;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
