@@ -5,6 +5,7 @@ server:
     context-path: "/gateway"
 
 
+
 spring:
   redis:
     port: 6379
@@ -59,22 +60,12 @@ spring:
             redis-rate-limiter.replenishRate: 1
             redis-rate-limiter.burstCapacity: 10
             key-resolver: "#{@apiKeyResolver}"
-
-      - id: after_route
-        uri: https://example.org/
-        predicates:
-        - After=2020-01-20T17:42:47.789-07:00[America/Denver]
       # header 灰度学员 可以根据header区分
       - id: header_route
         uri: https://example.org/
         predicates:
         - Header=huidu, \d+
         - Path=/points/*
-      # 根据路径路由
-      - id: host_route
-        uri: https://example.org
-        predicates:
-        - Path=/foo/{segment},/bar/{segment}
       # 根据路径路由 通配符
       - id: host_route
         uri: https://www.baidu.com
@@ -96,11 +87,6 @@ spring:
         predicates:
         - Path=/weight/*
         - Weight=group1, 2
-
-
-
-
-
 
 
 
@@ -129,4 +115,6 @@ redis:
     max-idle: 8
     min-idle: 0
   timeout: 0
+
+icsToken: 446a654cf768818ef76645fd8a09eacd
 
