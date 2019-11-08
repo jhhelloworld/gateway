@@ -1,22 +1,29 @@
 package com.xes.cloudlearn.ips.gateway.globalFilter;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.bouncycastle.asn1.ocsp.ResponseData;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import sun.rmi.runtime.Log;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * jh
@@ -32,35 +39,25 @@ public class WrapperResponseGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpResponse originalResponse = exchange.getResponse();
-        DataBufferFactory bufferFactory = originalResponse.bufferFactory();
-        ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
-            @Override
-            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                if (body instanceof Flux) {
-                    Flux<? extends DataBuffer> fluxBody = (Flux<? extends DataBuffer>) body;
-                    return super.writeWith(fluxBody.map(dataBuffer -> {
-                        // probably should reuse buffers
-                        byte[] content = new byte[dataBuffer.readableByteCount()];
-                        dataBuffer.read(content);
-                        //释放掉内存
-                        DataBufferUtils.release(dataBuffer);
-                        String s = new String(content, Charset.forName("UTF-8"));
-
-
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("status","000000");
-                        s = jsonObject.toJSONString();
-                        //TODO，s就是response的值，想修改、查看就随意而为了
-                        byte[] uppedContent = new String(s.getBytes(), Charset.forName("UTF-8")).getBytes();
-                        return bufferFactory.wrap(uppedContent);
-                    }));
-                }
-                // if body is not a flux. never got there.
-                return super.writeWith(body);
-            }
-        };
-        // replace response with decorator
-        return chain.filter(exchange.mutate().response(decoratedResponse).build());
+        HttpHeaders headers = exchange.getRequest().getHeaders();
+        // 此处写死了，演示用，实际中需要采取配置的方式
+        if (getIp(headers).equals("127.0.0.1")) {
+            ServerHttpResponse response = exchange.getResponse();
+            JSONObject json = new JSONObject();
+            json.put("code","123");
+            byte[] datas = json.toJSONString().getBytes();
+            DataBuffer buffer = response.bufferFactory().wrap(datas);
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+            return response.writeWith(Mono.just(buffer));
+        }
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+        }));
     }
+
+    // 这边从请求头中获取用户的实际IP,根据Nginx转发的请求头获取
+    private String getIp(HttpHeaders headers) {
+        return "127.0.0.2";
+    }
+
 }

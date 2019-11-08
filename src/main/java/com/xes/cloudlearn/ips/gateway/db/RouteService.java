@@ -24,7 +24,7 @@ public class RouteService {
      * @return
      */
     public List<ZuulRouteVO> findRouteList() {
-        String sql = "select zuulId id , path , serviceId , url , stripPrefix , retryable , sensitiveHeaders from zuul_route where is_delete = 0";
+        String sql = "select zuulId id , path , serviceId , url , stripPrefix , retryable , sensitiveHeaders from gateway_route where is_delete = 0";
         List<ZuulRouteVO> routeList = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(ZuulRouteVO.class));
         return routeList;
     }

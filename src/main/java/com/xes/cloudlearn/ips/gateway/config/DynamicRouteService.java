@@ -2,6 +2,9 @@ package com.xes.cloudlearn.ips.gateway.config;
 
 
 import com.alibaba.fastjson.JSON;
+import com.xes.cloudlearn.ips.gateway.db.RouteService;
+import com.xes.cloudlearn.ips.gateway.vo.ZuulRouteVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
@@ -29,6 +32,8 @@ public class DynamicRouteService implements ApplicationEventPublisherAware {
     private RouteDefinitionWriter routeDefinitionWriter;
 
     private ApplicationEventPublisher publisher;
+    @Autowired
+    private RouteService routeService;
 
     //发起RefreshRoutesEvent事件，触发动态刷新（重新拉取路由配置信息）
     private void notifyChanged() {
@@ -107,6 +112,28 @@ public class DynamicRouteService implements ApplicationEventPublisherAware {
     private StringRedisTemplate redisTemplate;
     @PostConstruct
     public void main() {
+        List<ZuulRouteVO> findRouteList = routeService.findRouteList();
+        for(ZuulRouteVO zuulRouteVO:findRouteList){
+
+            RouteDefinition definition = new RouteDefinition();
+            definition.setId(zuulRouteVO.getId());
+            URI uri = UriComponentsBuilder.fromHttpUrl(zuulRouteVO.getUrl()).build().toUri();
+            definition.setUri(uri);
+            //定义第一个断言
+            PredicateDefinition predicate = new PredicateDefinition();
+            predicate.setName("Path");
+            Map<String, String> predicateParams = new HashMap<>(8);
+            predicateParams.put("pattern", zuulRouteVO.getPath());
+            predicate.setArgs(predicateParams);
+            definition.setPredicates(Arrays.asList(predicate));
+            System.out.println("definition:" + JSON.toJSONString(definition));
+            redisTemplate.opsForHash().put(RedisRouteDefinitionRepository.GATEWAY_ROUTES, zuulRouteVO.getId(), JSON.toJSONString(definition));
+        }
+
+
+
+
+
         RouteDefinition definition = new RouteDefinition();
         definition.setId("id");
         URI uri = UriComponentsBuilder.fromHttpUrl("http://127.0.0.1:8888/header").build().toUri();
